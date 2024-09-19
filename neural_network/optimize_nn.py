@@ -77,7 +77,7 @@ def train_gnn(model, train_data_loader, valid_data_loader, optimizer, EPOCHS):
 
         avg_train_loss = train_loss / len(train_data_loader)
         valid_loss = evaluate_fn(model.to(device),valid_data_loader,criterion,device)
-        scheduler.step(valid_loss/len(valid_data_loader))
+        scheduler.step(valid_loss)
 
         if valid_loss < best_valid_loss:
             best_valid_loss = valid_loss
