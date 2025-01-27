@@ -2,7 +2,7 @@ import pickle
 import torch
 from dgl.dataloading import GraphDataLoader
 from preprocessing.dgl_dataset import TextDataset
-from sklearn.metrics import precision_recall_fscore_support, classification_report
+from sklearn.metrics import precision_recall_fscore_support
 import sys
 import h5py
 
@@ -51,4 +51,3 @@ if __name__ == '__main__':
     precision, recall, fscore, _ = precision_recall_fscore_support(list_truth, list_pred, average='macro',
                                                                    pos_label=None)
     print("fscore-->{:.3f}".format(fscore))
-    print(classification_report(list_truth, list_pred, digits=3))
