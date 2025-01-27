@@ -2,37 +2,29 @@ import pickle
 import torch
 from dgl.dataloading import GraphDataLoader
 from preprocessing.dgl_dataset import TextDataset
-from sklearn.metrics import precision_recall_fscore_support
+from sklearn.metrics import precision_recall_fscore_support, classification_report
 import sys
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-import sqlite3
+import h5py
 
-def fetch_graphs():
-    c.execute('''SELECT graph FROM graphs''')
-    rows = c.fetchall()
-    graph_list = []
-    for row in rows:
-        serialized_graph = row[0]
-        graph = pickle.loads(serialized_graph)
-        graph_list.append(graph)
-    return graph_list
+
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+def load_graphs_from_hdf5(filename):
+        graphs = []
+        label = []
+        with h5py.File(filename, 'r') as f:
+            for key in f.keys():
+                pickled_graph = f[key][()]
+                graph = pickle.loads(pickled_graph)
+                graphs.append(graph['graph'])
+                label.append(graph['label'])
+        return graphs, label
 
 if __name__ == '__main__':
     log_name = sys.argv[1]
     print(log_name, '-----')
 
-    conn = sqlite3.connect("heterographs_tracenode/" + log_name + '_test.db')
-    c = conn.cursor()
-
-    X_test = fetch_graphs()
-    
-    with open(f'heterographs_tracenode/{log_name}_ytest.pickle',
-              'rb') as handle:
-        y_test = pickle.load(handle)
-
-    with open(f'heterographs_tracenode/{log_name}_ytestint.pickle',
-              'rb') as handle:
-        y_test_int = pickle.load(handle)
+    # Load graphs
+    X_test, y_test = load_graphs_from_hdf5('heterographs_tracenode/' + log_name + '_test.db')
 
     model = torch.load(f'models/model_{log_name}.h5')
     df_test = TextDataset(X_test, y_test)
@@ -48,7 +40,7 @@ if __name__ == '__main__':
     with torch.no_grad():
         for X, y in test_loader:
             X, y = X.to(device), y.to(device)
-            list_edge = X.edges(etype=('activity', 'follow', 'activity'))
+            list_edge = X.edges(etype=('concept:name', 'follow', 'concept:name'))
             feature = {}
             for n in X.ntypes:
                 feature[n] = X.ndata[n][n]
@@ -59,3 +51,4 @@ if __name__ == '__main__':
     precision, recall, fscore, _ = precision_recall_fscore_support(list_truth, list_pred, average='macro',
                                                                    pos_label=None)
     print("fscore-->{:.3f}".format(fscore))
+    print(classification_report(list_truth, list_pred, digits=3))
