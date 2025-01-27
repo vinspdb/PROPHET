@@ -245,9 +245,15 @@ if __name__ == '__main__':
         for i in list(event_attributes):
             print('Event Attribute --> {}'.format(i))
             print('Do you want to keep the feature? yes/no')
-            x = input()
-            if x == 'yes':
-                list_e_a.append(i)
+            while True:
+                x = input()
+                if x.lower() == 'yes':
+                    list_e_a.append(i)
+                    break
+                elif x.lower() == 'no':
+                    break
+                else:
+                    print("Please enter 'yes' or 'no'")
 
         list_e_a.remove('time:timestamp')
         list_e_a.append('timesincecasestart')
@@ -257,9 +263,15 @@ if __name__ == '__main__':
             if i != 'case:concept:name':
                 print('Case Attribute --> {}'.format(i))
                 print('Do you want to keep the feature? yes/no')
-                x = input()
-                if x == 'yes':
-                    list_c_a.append(i)
+                while True:
+                    x = input()
+                    if x.lower() == 'yes':
+                        list_e_a.append(i)
+                        break
+                    elif x.lower() == 'no':
+                        break
+                    else:
+                        print("Please enter 'yes' or 'no'")
 
 
         result = create_triangular_matrix(list_e_a)
@@ -360,9 +372,7 @@ if __name__ == '__main__':
         Y_test = np.asarray(test_onehot_encoded)
         Y_test_int = np.asarray(test_integer_encoded)
 
-
         build_list_graphs(dict_view_train, Y_train, dict_enc, mean, 'heterographs_tracenode/' + log_name + '_train.db', list_e_a, list_c_a, relation)
-        print('end train generation')
+        print('end_train')
 
         build_list_graphs(dict_view_test, Y_test, dict_enc, mean, 'heterographs_tracenode/' + log_name + '_test.db', list_e_a, list_c_a, relation)
-        print('end test generation')
