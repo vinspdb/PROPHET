@@ -11,16 +11,16 @@ class GenerateTrace:
         return dataframe
 
     def generate_split(self, log):
-        grouped = log.groupby("case")
-        start_timestamps = grouped["timestamp"].min().reset_index()
-        start_timestamps = start_timestamps.sort_values("timestamp", ascending=True, kind="mergesort")
-        train_ids = list(start_timestamps["case"])[:int(0.66 * len(start_timestamps))]
-        train = log[log["case"].isin(train_ids)].sort_values("timestamp", ascending=True,kind='mergesort')
-        test = log[~log["case"].isin(train_ids)].sort_values("timestamp", ascending=True,kind='mergesort')
+        grouped = log.groupby("case:concept:name")
+        start_timestamps = grouped["time:timestamp"].min().reset_index()
+        start_timestamps = start_timestamps.sort_values("time:timestamp", ascending=True, kind="mergesort")
+        train_ids = list(start_timestamps["case:concept:name"])[:int(0.66 * len(start_timestamps))]
+        train = log[log["case:concept:name"].isin(train_ids)].sort_values("time:timestamp", ascending=True,kind='mergesort')
+        test = log[~log["case:concept:name"].isin(train_ids)].sort_values("time:timestamp", ascending=True,kind='mergesort')
         return train, test
 
     def generate_prefix_trace(self, log, view):
-        act = log.groupby('case', sort=False).agg({view: lambda x: list(x)})
+        act = log.groupby('case:concept:name', sort=False).agg({view: lambda x: list(x)})
         return act
 
     def get_act(self):
