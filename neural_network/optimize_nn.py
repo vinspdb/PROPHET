@@ -12,8 +12,7 @@ from neural_network.hetero_gnn import HeteroClassifier
 from time import perf_counter
 import time
 import sys
-import sqlite3
-
+import h5py
 
 seed = 123
 np.random.seed(seed)
@@ -137,15 +136,16 @@ def fit_and_score(params):
             'time': end_time - start_time}
 
 
-def fetch_graphs():
-        c.execute('''SELECT graph FROM graphs''')
-        rows = c.fetchall()
-        graph_list = []
-        for row in rows:
-            serialized_graph = row[0]
-            graph = pickle.loads(serialized_graph)
-            graph_list.append(graph)
-        return graph_list
+def load_graphs_from_hdf5(filename):
+    graphs = []
+    label = []
+    with h5py.File(filename, 'r') as f:
+        for key in f.keys():
+            pickled_graph = f[key][()]
+            graph = pickle.loads(pickled_graph)
+            graphs.append(graph['graph'])
+            label.append(graph['label'])
+    return graphs, label
 
 if __name__ == "__main__":
     log_name = sys.argv[1]
@@ -156,15 +156,12 @@ if __name__ == "__main__":
     if torch.cuda.is_available():
         torch.cuda.set_device(device)
 
-    conn = sqlite3.connect(log_name+'_train.db')
-    c = conn.cursor()
+    #conn = sqlite3.connect('heterographs_tracenode/' +log_name+'_train.db')
+    #c = conn.cursor()
     outfile.write("Starting time: %s\n" % current_time)
 
-    X_train = fetch_graphs()
-
-    with open('heterographs_tracenode/' + log_name + '_ytrain.pickle', 'rb') as handle:
-        y_train = np.array(pickle.load(handle))
-
+    # Load graphs
+    X_train, y_train = load_graphs_from_hdf5('heterographs_tracenode/' + log_name + '_train.db')
     X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2, random_state=42, shuffle=True)
 
     df_train = TextDataset(X_train, y_train)
