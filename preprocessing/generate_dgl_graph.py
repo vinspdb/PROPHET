@@ -139,12 +139,12 @@ def build_list_graphs(dict_view, dict_y, dict_enc, mean, c, event_attributes, ca
                 list_node_feature = {}
                 dgl_canonical_edge = {}
                 weight_node_follow_node = {}
-                for v in event_attributes:#lc.dict_log[log_name]['event_attr']:
+                for v in event_attributes:
                     list_node[v], list_node_comp[v] = gen_flow(dict_view[v][k])
                     list_node_feature[v] = apply_w2v(list_node[v], dict_enc[v], mean) #W2W
 
                 list_att_trace = []
-                for v in case_attributes:#lc.dict_log[log_name]['trace_attr_cat']:
+                for v in case_attributes:
                     embed_vector = dict_enc[v].get(replace_char(dict_view[v][k][0]))
                     if embed_vector is not None:
                         res = embed_vector
@@ -152,13 +152,11 @@ def build_list_graphs(dict_view, dict_y, dict_enc, mean, c, event_attributes, ca
                         res = np.zeros(shape=(mean,))
                     list_att_trace.append(res)
 
-                #for v in lc.dict_log[log_name]['trace_attr_num']:
-                #    list_att_trace.append(np.array(dict_view[v][k][0]).reshape(1))
                 if list_att_trace !=[]:
                     list_node_comp['trace_att'] = [0]
                     list_node_feature['trace_att'] = np.array([np.concatenate(list_att_trace)])
 
-                for rel in relation:#lc.dict_log[log_name]['relation']:
+                for rel in relation:
                     if rel[1] == 'follow':
                         edge_res = np.array([[list_node_comp[rel[0]][i], list_node_comp[rel[0]][i + 1]] for i in range(len(list_node_comp[rel[0]]) - 1)])
                     elif rel[1] == 'has_ta':
@@ -291,6 +289,9 @@ if __name__ == '__main__':
         print('Event Attribute --> {}'.format(list_e_a))
         print('Case Attribute --> {}'.format(list_c_a))
         print('Relations --> {}'.format(relation))
+        output = open("w2v/" + log_name + "/relations.pkl", 'wb')
+        pickle.dump(relation, output)
+
 
         print('log-->', log_name)
 
